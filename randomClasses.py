@@ -10,15 +10,16 @@ class TrueRandom():
             raise AttributeError
 
     def request(self, service, **args):
-        from urllib.request import urlopen
+        from urllib.request import urlopen, Request
         from urllib.parse import urlencode, urlunsplit
         from urllib.error import HTTPError, URLError # HTTPError if 503 request, URLError if timed out
         
         data = urlencode(args)
-        url = urlunsplit(['http', self.url, service, data, ''])
+        url = urlunsplit(['https', self.url, service, data, ''])
         if service != 'quota': self.checkQuota()
         try:
-            res = urlopen(url, timeout=60)
+            req = Request(url, headers={'User-Agent': 'Mozilla/5.0'}) # prevent 'HTTP Error 403: Forbidden'
+            res = urlopen(req, timeout=60)
             seq = res.read().decode()
         except HTTPError as error: # service returns 503 code (Service Unavailable)
             seq = error.read().decode()
